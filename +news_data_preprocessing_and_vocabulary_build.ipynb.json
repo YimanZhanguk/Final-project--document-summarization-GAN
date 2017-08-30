@@ -1,0 +1,1842 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import jsonlines"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "mydata = jsonlines.open('/Users/zhangyiman/Desktop/sample.jsonl')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "   \"id\": \"a080f99a-07d9-47d1-8244-26a540017b7a\",\n",
+    "   \"content\": \"KUALA LUMPUR, Sept 15 (MySinchew) -- The Kuala Lumpur City Hall today issued ...\",\n",
+    "   \"title\": \"Pay up or face legal action: DBKL\",\n",
+    "   \"media-type\": \"News\",\n",
+    "   \"source\": \"My Sinchew\",\n",
+    "   \"published\": \"2015-09-15T10:17:53Z\""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "news_id = []\n",
+    "content = []\n",
+    "title = []\n",
+    "for q_a in mydata:\n",
+    "    news_id.append(q_a['id'])\n",
+    "    content.append(q_a['content'])\n",
+    "    title.append(q_a['title'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1000000"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(title)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Harwood Feffer LLP Announces Investigation of VASCO Data Security International, Inc.'"
+      ]
+     },
+     "execution_count": 5,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "title[8]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Mumbai, Sep 11 : Following were the indicative currency notes\\xa0 and travellers’ cheques buying and selling rates per unit\\xa0 today.\\xa0 CURRENCY NAME BUY SALE UAE DIRHAM 16.7276 19.1652 AUSTRALIAN DOLLAR 43.7311 49.3792\\xa0 BANGLADESH TAKA 0.782276 0.921413\\xa0 BAHRAIN DINAR 163.3139 186.6076 CANADIAN DOLLAR 46.2854 53.1733\\xa0 SWISS FRANC 63.3832 72.8305 CHINESE YUAN 7.36 11.96 DANISH KRONE 9.1253 10.6636     EURO 69.8139 79.004\\xa0 STERLING POUND 95.581 108.1744 HONG KONG DOLLAR 7.7277 9.2278\\xa0 JAPANESE YEN 0.5098 0.5795 KUWAITI DINAR 181.7544 225.9568\\xa0\\xa0 SRI LANKA RUPEE 0.4387 0.5162 MALAYSIAN RINGITT 13.6713 16.8179 NORWEGIAN KRONE 7.3399 8.6565 NEPALESE RUPEE 0.5749 0.6251 NEW ZEALAND DOLLAR 38.0173 44.6709 OMANI RIAL 160.016414 182.547573 PAKISTAN RUPEE 0.5835 0.6864 QATARI RIAL 16.8627 19.3201 SAUDI RIAL 16.3564 18.9515 SWEDISH KRONA 7.1261 8.4018 SINGAPORE DOLLAR 42.9001 50.6758 THAI BAHT 1.6894 2.0027 US DOLLAR 61.8807 70.0204 SOUTH AFRICAN RAND 4.2193 5.1954'"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "content[5]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### 随手记录tips：\n",
+    "#### 1) 输入前两句或前三句 出title\n",
+    "#### 2) 先用baseline里选句子的包 选句子 选两三句 然后出title"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 分割句子啥的……(清洗dataset)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import re"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "line = content[7]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "fields = re.split('\\n|\\t', line)\n",
+    "sen_d = []\n",
+    "i = 0\n",
+    "while i < len(fields):\n",
+    "    if fields[i] == ''or fields[i] == ' ':\n",
+    "        fields.pop(i)\n",
+    "        i -= 1\n",
+    "    i += 1\n",
+    "for i in range(0,len(fields)):\n",
+    "    sen_str = fields[i].split('. ')\n",
+    "    for j in range(0,len(sen_str)):\n",
+    "        sen_d.append(sen_str[j])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Harwood Feffer LLP Announces Investigation of VASCO Data Security International, Inc.'"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "title[8]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Just in time for the holiday shopping seasons, Apple has announced a series of hardware upgrades for the iPhone, iPad and Apple TV',\n",
+       " \"iPhone's price sees steep increaseAll the Apple announcements Just in time for the holiday shopping season, Apple has announced a series of hardware upgrades for the iPhone, iPad and Apple TV\",\n",
+       " 'With the iPhone, the company added a feature called 3D Touch, which lets users control some of the software by exerting pressure on the touch screen',\n",
+       " 'The Apple TV got its first big upgrade in more than three years with a more powerful chip and a redesigned remote control',\n",
+       " \"Apple's family of iPads also gained a bigger sibling with the iPad Pro, a tablet with a 12.9-inch screen — much larger than the older 9.7-inch iPad.\",\n",
+       " 'At the event, I tried out the new products in a demonstration booth',\n",
+       " 'Here are some first impressions: iPhone',\n",
+       " \"The 3D Touch capability is the iPhone's signature new feature\",\n",
+       " 'Pressing down on the screen starts different actions, depending on how much force is exerted.',\n",
+       " 'A light press on an email, for example, shows a preview of the message, and a hard press then opens the email',\n",
+       " 'You can also press down hard on an app icon to open shortcuts to different actions — for example, pushing down on the Instagram app shows a list of next steps, including the ability to create a new post',\n",
+       " 'When you press down hard, the device responds with a tapping sensation.',\n",
+       " 'I found the new iPhones pretty straightforward to use',\n",
+       " 'The 3D Touch feature is easy to get used to, and I quickly figured out how to create a new calendar appointment by pressing down hard on the calendar app icon.',\n",
+       " \"The new smartphones are also slightly thicker and heavier than their predecessors, though I confess I noticed that only after reading the specifications on Apple's website and not when holding the devices\",\n",
+       " 'iPad',\n",
+       " \"The iPad Pro's jumbo screen obviously gives more room for content to breathe, but interacting with it still feels the same as with older iPad tablets.\",\n",
+       " 'The iPad Pro is capable of running two full-size iPad apps on the screen at the same time',\n",
+       " 'The previous iPad Air 2 could run two apps at the same time, but with a primary app taking up a larger portion of the screen.',\n",
+       " 'The large device will be familiar to most because apart from its size, it works the same as previous versions of the tablet',\n",
+       " 'The big-screen iPad also felt comfortable to hold',\n",
+       " 'It weighs about 680 grams, which is the same weight as the very first iPad',\n",
+       " 'Apple TV',\n",
+       " 'The Apple TV is significantly different from past models',\n",
+       " \"The software interface has a white background and vivid colours, similar to Apple's Music app\",\n",
+       " \"The new remote control includes a touch pad for scrolling around the menu and a microphone for finding things to watch using Siri, Apple's voice assistant\",\n",
+       " 'The remote also includes motion sensors for gaming.',\n",
+       " 'I decided to have some fun by asking Siri to help me navigate content on Apple TV',\n",
+       " 'For example, I tried using Siri to steer a spaceship in a Star Wars game',\n",
+       " 'But that was difficult, perhaps because of my inexperience with the game.',\n",
+       " \"I also tried searching for action movies and comedy movies with the remote control's microphone\",\n",
+       " 'Siri misunderstood me when I said \"comedy,\" thinking I had said \"comity.\" But it did a better job with action movies — when I said \"show me action movies,\" Siri brought up a list of titles including Mad Max and Furious 7.',\n",
+       " \"The new remote control is thicker than the previous one, and in this case, that's a good thing\",\n",
+       " 'The previous Apple TV remote was so thin that it had a tendency to disappear between couch cushions.',\n",
+       " 'The New York Times',\n",
+       " 'Follow Digital Life on Twitter The story first appeared on The Sydney Morning Herald.']"
+      ]
+     },
+     "execution_count": 11,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sen_d"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "document = []\n",
+    "for _c in range(0,len(content)):\n",
+    "    line = content[_c]\n",
+    "    \n",
+    "    fields = re.split('\\n|\\t', line)\n",
+    "    sen_d = []\n",
+    "    i = 0\n",
+    "    while i < len(fields):\n",
+    "        if fields[i] == ''or fields[i] == ' ':\n",
+    "            fields.pop(i)\n",
+    "            i -= 1\n",
+    "        i += 1\n",
+    "    for i in range(0,len(fields)):\n",
+    "        sen_str = fields[i].split('. ')\n",
+    "        for j in range(0,len(sen_str)):\n",
+    "            sen_d.append(sen_str[j])\n",
+    "    document.append(sen_d)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "for i in range(0,len(document)):\n",
+    "    doc = document[i]\n",
+    "    while j < len(doc):\n",
+    "        if doc[j] == '' or doc[j] ==' ':\n",
+    "            doc.pop(j)\n",
+    "            j -= 1\n",
+    "        j +=1"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'This New Dating App Will Ruin Your Internet Game'"
+      ]
+     },
+     "execution_count": 14,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "title[3]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1000000"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(document)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['Mumbai, Sep 11 : Following were the indicative currency notes\\xa0 and travellers’ cheques buying and selling rates per unit\\xa0 today.\\xa0 CURRENCY NAME BUY SALE UAE DIRHAM 16.7276 19.1652 AUSTRALIAN DOLLAR 43.7311 49.3792\\xa0 BANGLADESH TAKA 0.782276 0.921413\\xa0 BAHRAIN DINAR 163.3139 186.6076 CANADIAN DOLLAR 46.2854 53.1733\\xa0 SWISS FRANC 63.3832 72.8305 CHINESE YUAN 7.36 11.96 DANISH KRONE 9.1253 10.6636     EURO 69.8139 79.004\\xa0 STERLING POUND 95.581 108.1744 HONG KONG DOLLAR 7.7277 9.2278\\xa0 JAPANESE YEN 0.5098 0.5795 KUWAITI DINAR 181.7544 225.9568\\xa0\\xa0 SRI LANKA RUPEE 0.4387 0.5162 MALAYSIAN RINGITT 13.6713 16.8179 NORWEGIAN KRONE 7.3399 8.6565 NEPALESE RUPEE 0.5749 0.6251 NEW ZEALAND DOLLAR 38.0173 44.6709 OMANI RIAL 160.016414 182.547573 PAKISTAN RUPEE 0.5835 0.6864 QATARI RIAL 16.8627 19.3201 SAUDI RIAL 16.3564 18.9515 SWEDISH KRONA 7.1261 8.4018 SINGAPORE DOLLAR 42.9001 50.6758 THAI BAHT 1.6894 2.0027 US DOLLAR 61.8807 70.0204 SOUTH AFRICAN RAND 4.2193 5.1954']"
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "document[5]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## cosine similarity"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import re, math\n",
+    "from collections import Counter\n",
+    "\n",
+    "WORD = re.compile(r'\\w+')\n",
+    "\n",
+    "def get_cosine(vec1, vec2):\n",
+    "    intersection = set(vec1.keys()) & set(vec2.keys())\n",
+    "    numerator = sum([vec1[x] * vec2[x] for x in intersection])\n",
+    "\n",
+    "    sum1 = sum([vec1[x]**2 for x in vec1.keys()])\n",
+    "    sum2 = sum([vec2[x]**2 for x in vec2.keys()])\n",
+    "    denominator = math.sqrt(sum1) * math.sqrt(sum2)\n",
+    "\n",
+    "    if not denominator:\n",
+    "        return 0.0\n",
+    "    else:\n",
+    "        return float(numerator) / denominator\n",
+    "\n",
+    "def text_to_vector(text):\n",
+    "    words = WORD.findall(text)\n",
+    "    return Counter(words)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1000000"
+      ]
+     },
+     "execution_count": 18,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(document)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'Mumbai, Sep 11 : Following were the indicative currency notes\\xa0 and travellers’ cheques buying and selling rates per unit\\xa0 today.\\xa0 CURRENCY NAME BUY SALE UAE DIRHAM 16.7276 19.1652 AUSTRALIAN DOLLAR 43.7311 49.3792\\xa0 BANGLADESH TAKA 0.782276 0.921413\\xa0 BAHRAIN DINAR 163.3139 186.6076 CANADIAN DOLLAR 46.2854 53.1733\\xa0 SWISS FRANC 63.3832 72.8305 CHINESE YUAN 7.36 11.96 DANISH KRONE 9.1253 10.6636     EURO 69.8139 79.004\\xa0 STERLING POUND 95.581 108.1744 HONG KONG DOLLAR 7.7277 9.2278\\xa0 JAPANESE YEN 0.5098 0.5795 KUWAITI DINAR 181.7544 225.9568\\xa0\\xa0 SRI LANKA RUPEE 0.4387 0.5162 MALAYSIAN RINGITT 13.6713 16.8179 NORWEGIAN KRONE 7.3399 8.6565 NEPALESE RUPEE 0.5749 0.6251 NEW ZEALAND DOLLAR 38.0173 44.6709 OMANI RIAL 160.016414 182.547573 PAKISTAN RUPEE 0.5835 0.6864 QATARI RIAL 16.8627 19.3201 SAUDI RIAL 16.3564 18.9515 SWEDISH KRONA 7.1261 8.4018 SINGAPORE DOLLAR 42.9001 50.6758 THAI BAHT 1.6894 2.0027 US DOLLAR 61.8807 70.0204 SOUTH AFRICAN RAND 4.2193 5.1954'"
+      ]
+     },
+     "execution_count": 19,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "document[5][0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "#document[5].pop(0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "#document[5]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "#len(document[5])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {
+    "collapsed": false,
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "processing:\n",
+      "0\n",
+      "processing:\n",
+      "10000\n",
+      "processing:\n",
+      "20000\n",
+      "processing:\n",
+      "30000\n",
+      "processing:\n",
+      "40000\n",
+      "processing:\n",
+      "50000\n",
+      "processing:\n",
+      "60000\n",
+      "processing:\n",
+      "70000\n",
+      "processing:\n",
+      "80000\n",
+      "processing:\n",
+      "90000\n",
+      "processing:\n",
+      "100000\n",
+      "processing:\n",
+      "110000\n",
+      "processing:\n",
+      "120000\n",
+      "processing:\n",
+      "130000\n",
+      "processing:\n",
+      "140000\n",
+      "processing:\n",
+      "150000\n",
+      "processing:\n",
+      "160000\n",
+      "processing:\n",
+      "170000\n",
+      "processing:\n",
+      "180000\n",
+      "processing:\n",
+      "190000\n",
+      "processing:\n",
+      "200000\n",
+      "processing:\n",
+      "210000\n",
+      "processing:\n",
+      "220000\n",
+      "processing:\n",
+      "230000\n",
+      "processing:\n",
+      "240000\n",
+      "processing:\n",
+      "250000\n",
+      "processing:\n",
+      "260000\n",
+      "processing:\n",
+      "270000\n",
+      "processing:\n",
+      "280000\n",
+      "processing:\n",
+      "290000\n",
+      "processing:\n",
+      "300000\n",
+      "processing:\n",
+      "310000\n",
+      "processing:\n",
+      "320000\n",
+      "processing:\n",
+      "330000\n",
+      "processing:\n",
+      "340000\n",
+      "processing:\n",
+      "350000\n",
+      "processing:\n",
+      "360000\n",
+      "processing:\n",
+      "370000\n",
+      "processing:\n",
+      "380000\n",
+      "processing:\n",
+      "390000\n",
+      "processing:\n",
+      "400000\n",
+      "processing:\n",
+      "410000\n",
+      "processing:\n",
+      "420000\n",
+      "processing:\n",
+      "430000\n",
+      "processing:\n",
+      "440000\n",
+      "processing:\n",
+      "450000\n",
+      "processing:\n",
+      "460000\n",
+      "processing:\n",
+      "470000\n",
+      "processing:\n",
+      "480000\n",
+      "processing:\n",
+      "490000\n",
+      "processing:\n",
+      "500000\n",
+      "processing:\n",
+      "510000\n",
+      "processing:\n",
+      "520000\n",
+      "processing:\n",
+      "530000\n",
+      "processing:\n",
+      "540000\n",
+      "processing:\n",
+      "550000\n",
+      "processing:\n",
+      "560000\n",
+      "processing:\n",
+      "570000\n",
+      "processing:\n",
+      "580000\n",
+      "processing:\n",
+      "590000\n",
+      "processing:\n",
+      "600000\n",
+      "processing:\n",
+      "610000\n",
+      "processing:\n",
+      "620000\n",
+      "processing:\n",
+      "630000\n",
+      "processing:\n",
+      "640000\n",
+      "processing:\n",
+      "650000\n",
+      "processing:\n",
+      "660000\n",
+      "processing:\n",
+      "670000\n",
+      "processing:\n",
+      "680000\n",
+      "processing:\n",
+      "690000\n",
+      "processing:\n",
+      "700000\n",
+      "processing:\n",
+      "710000\n",
+      "processing:\n",
+      "720000\n",
+      "processing:\n",
+      "730000\n",
+      "processing:\n",
+      "740000\n",
+      "processing:\n",
+      "750000\n",
+      "processing:\n",
+      "760000\n",
+      "processing:\n",
+      "770000\n",
+      "processing:\n",
+      "780000\n",
+      "processing:\n",
+      "790000\n",
+      "processing:\n",
+      "800000\n",
+      "processing:\n",
+      "810000\n",
+      "processing:\n",
+      "820000\n",
+      "processing:\n",
+      "830000\n",
+      "processing:\n",
+      "840000\n",
+      "processing:\n",
+      "850000\n",
+      "processing:\n",
+      "860000\n",
+      "processing:\n",
+      "870000\n",
+      "processing:\n",
+      "880000\n",
+      "processing:\n",
+      "890000\n",
+      "processing:\n",
+      "900000\n",
+      "processing:\n",
+      "910000\n",
+      "processing:\n",
+      "920000\n",
+      "processing:\n",
+      "930000\n",
+      "processing:\n",
+      "940000\n",
+      "processing:\n",
+      "950000\n",
+      "processing:\n",
+      "960000\n",
+      "processing:\n",
+      "970000\n",
+      "processing:\n",
+      "980000\n",
+      "processing:\n",
+      "990000\n"
+     ]
+    }
+   ],
+   "source": [
+    "document_sim = []\n",
+    "for i in range(0,len(document)):\n",
+    "    if i%10000 == 0:\n",
+    "        print('processing:')\n",
+    "        print(i)\n",
+    "    #print(i)\n",
+    "    doc = document[i]\n",
+    "    vector1 = text_to_vector(title[i])\n",
+    "    dic = {}\n",
+    "    for j in range(0,len(doc)):\n",
+    "        text = doc[j]\n",
+    "        vector2 = text_to_vector(doc[j])\n",
+    "        cosine_score = get_cosine(vector1,vector2)\n",
+    "        #print(cosine_score)\n",
+    "        dic[text] = cosine_score\n",
+    "        #print('miao')\n",
+    "    key_sen = []\n",
+    "    value_score = []\n",
+    "    for key in dic:\n",
+    "        key_sen.append(key)\n",
+    "        value_score.append(dic[key])\n",
+    "        #print('miaomioa')\n",
+    "    selected_sen = []\n",
+    "    selected_sen_str = ''\n",
+    "    length_of_doc = 0\n",
+    "    #print(len(key_sen))\n",
+    "    num = 0\n",
+    "    while length_of_doc < 120:\n",
+    "        num = num + 1\n",
+    "        max_score = 0\n",
+    "        flag = 0\n",
+    "        for m in range(0,len(key_sen)):\n",
+    "            if value_score[m] > max_score:\n",
+    "                if key_sen[m] not in selected_sen:\n",
+    "                    max_score = value_score[m]\n",
+    "                    flag = m\n",
+    "        #print('ao')\n",
+    "        selected_sen.append(key_sen[flag])\n",
+    "        selected_sen_str = selected_sen_str + str(key_sen[flag])\n",
+    "        selected_sen_str = selected_sen_str + ' '\n",
+    "\n",
+    "        sen_len = selected_sen_str.split(' ')\n",
+    "        length_of_doc = len(sen_len)\n",
+    "        #print('aoaoaoa')\n",
+    "        if num > 10:\n",
+    "            length_of_doc = 150\n",
+    "    document_sim.append(selected_sen_str)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1000000"
+      ]
+     },
+     "execution_count": 24,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(document_sim)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Expanding companies should assess risk from overseas operations\n",
+      "Many organizations are seeking to expand their operations overseas as part of their growth strategies Second, as companies globalize their operations, they rely more heavily on third parties than before to do business in far-flung parts of the world, often in areas where there is a high risk of corruption The survey, conducted by KPMG International with respondents from around the world, shows that companies are rising to the challenge but that a great deal more needs to be done to create a sturdy ABC compliance structure However, as the global report highlights, with GCC based organizations and businesses increasingly investing overseas, reliance on and managing risk with third parties can be a challenge and adequate controls and monitoring must be put in place.”  \n"
+     ]
+    }
+   ],
+   "source": [
+    "print(title[158])\n",
+    "print(document_sim[158])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "document_sen = []\n",
+    "for i in range(0,len(document_sim)):\n",
+    "    doc_sen = ''\n",
+    "    doc_word = document_sim[i].split()\n",
+    "    if len(doc_word) > 120:\n",
+    "        for j in range(0,120):\n",
+    "            doc_sen = doc_sen + doc_word[j]\n",
+    "            doc_sen = doc_sen + ' '\n",
+    "    else:\n",
+    "        for j in range(0,len(doc_word)):\n",
+    "            doc_sen = doc_sen + doc_word[j]\n",
+    "            doc_sen = doc_sen + ' '\n",
+    "    document_sen.append(doc_sen)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1000000"
+      ]
+     },
+     "execution_count": 27,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(document_sen)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 28,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'This New Dating App Will Ruin Your Internet Game By Allison P This week’s sex diary Springwise Tags:dating appsimproved dating appskeeping us honestdatinglove and warMore Share on Facebook Tweet this Story Top Stories Sophie Theallet’s Elevated Triumph; Narciso Rodriguez’s Decisiveness Vote for the Top Street-Style Star, Day 6 A Hyperreal Peek Into the Fashion Week Funhouse Most Viewed Stories Ask Polly: Should I Just Give Up on My Writing? 2k Shares Share Tweet Khaleesi Is the Queen of Going-Out Tops 3.3k Shares Share Tweet Kanye Relegates Kendall to Second Row at Yeezy Show [Updated] 14 Shares Share Tweet Beware the Manic Pixie Dream Boyfriend 4.1k Shares Share Tweet The Bisexual Grad Student Laughing at Fifty Shades of Grey 272 Shares '"
+      ]
+     },
+     "execution_count": 28,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "document_sen[3]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 29,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "document = document_sen"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 30,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'This New Dating App Will Ruin Your Internet Game By Allison P This week’s sex diary Springwise Tags:dating appsimproved dating appskeeping us honestdatinglove and warMore Share on Facebook Tweet this Story Top Stories Sophie Theallet’s Elevated Triumph; Narciso Rodriguez’s Decisiveness Vote for the Top Street-Style Star, Day 6 A Hyperreal Peek Into the Fashion Week Funhouse Most Viewed Stories Ask Polly: Should I Just Give Up on My Writing? 2k Shares Share Tweet Khaleesi Is the Queen of Going-Out Tops 3.3k Shares Share Tweet Kanye Relegates Kendall to Second Row at Yeezy Show [Updated] 14 Shares Share Tweet Beware the Manic Pixie Dream Boyfriend 4.1k Shares Share Tweet The Bisexual Grad Student Laughing at Fifty Shades of Grey 272 Shares '"
+      ]
+     },
+     "execution_count": 30,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "document[3]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Stammer\n",
+    "#### 需要用stammer处理的： document 和 summary（title）"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 31,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "from nltk.stem.snowball import SnowballStemmer"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "stemmer = SnowballStemmer('english')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "strNum = {'zero':0,'one':1,'two':2,'three':3,'four':4,'five':5,'six':6,'seven':7,'eight':8,'nine':9}\n",
+    "\n",
+    "def str_stem(s): \n",
+    "    try:\n",
+    "        s = re.sub(r\"(\\w)\\.([A-Z])\", r\"\\1 \\2\", s) #Split words with a.A\n",
+    "        s = s.lower()\n",
+    "        s = s.replace(\"  \",\" \")\n",
+    "        s = s.replace(\",\",\"\") #could be number / segment later\n",
+    "        s = s.replace(\"$\",\" \")\n",
+    "        s = s.replace(\"?\",\" \")\n",
+    "        s = s.replace(\"-\",\" \")\n",
+    "        s = s.replace(\"//\",\"/\")\n",
+    "        s = s.replace(\"..\",\".\")\n",
+    "        s = s.replace(\" / \",\" \")\n",
+    "        s = s.replace(\" \\\\ \",\" \")\n",
+    "        s = s.replace(\".\",\" . \")\n",
+    "        s = re.sub(r\"(^\\.|/)\", r\"\", s)\n",
+    "        s = re.sub(r\"(\\.|/)$\", r\"\", s)\n",
+    "        s = re.sub(r\"([0-9])([a-z])\", r\"\\1 \\2\", s)\n",
+    "        s = re.sub(r\"([a-z])([0-9])\", r\"\\1 \\2\", s)\n",
+    "        #s = s.replace(\" x \",\" xbi \")\n",
+    "        s = re.sub(r\"([a-z])( *)\\.( *)([a-z])\", r\"\\1 \\4\", s)\n",
+    "        s = re.sub(r\"([a-z])( *)/( *)([a-z])\", r\"\\1 \\4\", s)\n",
+    "        #s = s.replace(\"*\",\" xbi \")\n",
+    "        #s = s.replace(\" by \",\" xbi \")\n",
+    "        s = re.sub(r\"([0-9])( *)\\.( *)([0-9])\", r\"\\1.\\4\", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(inches|inch|in|')\\.?\", r\"\\1in. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(foot|feet|ft|'')\\.?\", r\"\\1ft. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(pounds|pound|lbs|lb)\\.?\", r\"\\1lb. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(square|sq) ?\\.?(feet|foot|ft)\\.?\", r\"\\1sq.ft. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(cubic|cu) ?\\.?(feet|foot|ft)\\.?\", r\"\\1cu.ft. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(gallons|gallon|gal)\\.?\", r\"\\1gal. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(ounces|ounce|oz)\\.?\", r\"\\1oz. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(centimeters|cm)\\.?\", r\"\\1cm. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(milimeters|mm)\\.?\", r\"\\1mm. \", s)\n",
+    "        s = s.replace(\"°\",\" degrees \")\n",
+    "        s = re.sub(r\"([0-9]+)( *)(degrees|degree)\\.?\", r\"\\1deg. \", s)\n",
+    "        s = s.replace(\" v \",\" volts \")\n",
+    "        s = re.sub(r\"([0-9]+)( *)(volts|volt)\\.?\", r\"\\1volt. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(watts|watt)\\.?\", r\"\\1watt. \", s)\n",
+    "        s = re.sub(r\"([0-9]+)( *)(amperes|ampere|amps|amp)\\.?\", r\"\\1amp. \", s)\n",
+    "        s = s.replace(\"  \",\" \")\n",
+    "        s = s.replace(\" . \",\" \")\n",
+    "        #s = (\" \").join([z for z in s.split(\" \") if z not in stop_w])\n",
+    "        s = (\" \").join([str(strNum[z]) if z in strNum else z for z in s.split(\" \")])\n",
+    "        s = (\" \").join([stemmer.stem(z) for z in s.split(\" \")])\n",
+    "        \n",
+    "        s = s.lower()\n",
+    "        s = s.replace(\"u s \",\"U.S.\")\n",
+    "        s = s.replace(\"skil\",\"skill\")\n",
+    "        s = s.replace(\"whi\",\"why\")\n",
+    "        s = s.replace(\"believ\",\"believe\")\n",
+    "        s = s.replace(\"justifi\",\"justify\")\n",
+    "        s = s.replace('(','')\n",
+    "        s = s.replace(')','')\n",
+    "        \n",
+    "        return s\n",
+    "    except:\n",
+    "        return s"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "processed_document = []"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "processing: line: %d 0\n",
+      "processing: line: %d 10000\n",
+      "processing: line: %d 20000\n",
+      "processing: line: %d 30000\n",
+      "processing: line: %d 40000\n",
+      "processing: line: %d 50000\n",
+      "processing: line: %d 60000\n",
+      "processing: line: %d 70000\n",
+      "processing: line: %d 80000\n",
+      "processing: line: %d 90000\n",
+      "processing: line: %d 100000\n",
+      "processing: line: %d 110000\n",
+      "processing: line: %d 120000\n",
+      "processing: line: %d 130000\n",
+      "processing: line: %d 140000\n",
+      "processing: line: %d 150000\n",
+      "processing: line: %d 160000\n",
+      "processing: line: %d 170000\n",
+      "processing: line: %d 180000\n",
+      "processing: line: %d 190000\n",
+      "processing: line: %d 200000\n",
+      "processing: line: %d 210000\n",
+      "processing: line: %d 220000\n",
+      "processing: line: %d 230000\n",
+      "processing: line: %d 240000\n",
+      "processing: line: %d 250000\n",
+      "processing: line: %d 260000\n",
+      "processing: line: %d 270000\n",
+      "processing: line: %d 280000\n",
+      "processing: line: %d 290000\n",
+      "processing: line: %d 300000\n",
+      "processing: line: %d 310000\n",
+      "processing: line: %d 320000\n",
+      "processing: line: %d 330000\n",
+      "processing: line: %d 340000\n",
+      "processing: line: %d 350000\n",
+      "processing: line: %d 360000\n",
+      "processing: line: %d 370000\n",
+      "processing: line: %d 380000\n",
+      "processing: line: %d 390000\n",
+      "processing: line: %d 400000\n",
+      "processing: line: %d 410000\n",
+      "processing: line: %d 420000\n",
+      "processing: line: %d 430000\n",
+      "processing: line: %d 440000\n",
+      "processing: line: %d 450000\n",
+      "processing: line: %d 460000\n",
+      "processing: line: %d 470000\n",
+      "processing: line: %d 480000\n",
+      "processing: line: %d 490000\n",
+      "processing: line: %d 500000\n",
+      "processing: line: %d 510000\n",
+      "processing: line: %d 520000\n",
+      "processing: line: %d 530000\n",
+      "processing: line: %d 540000\n",
+      "processing: line: %d 550000\n",
+      "processing: line: %d 560000\n",
+      "processing: line: %d 570000\n",
+      "processing: line: %d 580000\n",
+      "processing: line: %d 590000\n",
+      "processing: line: %d 600000\n",
+      "processing: line: %d 610000\n",
+      "processing: line: %d 620000\n",
+      "processing: line: %d 630000\n",
+      "processing: line: %d 640000\n",
+      "processing: line: %d 650000\n",
+      "processing: line: %d 660000\n",
+      "processing: line: %d 670000\n",
+      "processing: line: %d 680000\n",
+      "processing: line: %d 690000\n",
+      "processing: line: %d 700000\n",
+      "processing: line: %d 710000\n",
+      "processing: line: %d 720000\n",
+      "processing: line: %d 730000\n",
+      "processing: line: %d 740000\n",
+      "processing: line: %d 750000\n",
+      "processing: line: %d 760000\n",
+      "processing: line: %d 770000\n",
+      "processing: line: %d 780000\n",
+      "processing: line: %d 790000\n",
+      "processing: line: %d 800000\n",
+      "processing: line: %d 810000\n",
+      "processing: line: %d 820000\n",
+      "processing: line: %d 830000\n",
+      "processing: line: %d 840000\n",
+      "processing: line: %d 850000\n",
+      "processing: line: %d 860000\n",
+      "processing: line: %d 870000\n",
+      "processing: line: %d 880000\n",
+      "processing: line: %d 890000\n",
+      "processing: line: %d 900000\n",
+      "processing: line: %d 910000\n",
+      "processing: line: %d 920000\n",
+      "processing: line: %d 930000\n",
+      "processing: line: %d 940000\n",
+      "processing: line: %d 950000\n",
+      "processing: line: %d 960000\n",
+      "processing: line: %d 970000\n",
+      "processing: line: %d 980000\n",
+      "processing: line: %d 990000\n"
+     ]
+    }
+   ],
+   "source": [
+    "for i in range(0,len(document)):\n",
+    "    if i % 10000 == 0:\n",
+    "        print('processing: line: %d',i)\n",
+    "    word_input = document[i].split()\n",
+    "    word = []\n",
+    "    for j in range(0,len(word_input)):\n",
+    "        word.append(str_stem(word_input[j]))\n",
+    "    str = ''\n",
+    "    for j in range(0,len(word)):\n",
+    "        str = str + word[j]\n",
+    "        str = str +' '\n",
+    "    str = str.replace('  ',' ')\n",
+    "    processed_document.append(str)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1000000"
+      ]
+     },
+     "execution_count": 36,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(processed_document)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "processed_title = []"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "processing: line: %d 0\n",
+      "processing: line: %d 10000\n",
+      "processing: line: %d 20000\n",
+      "processing: line: %d 30000\n",
+      "processing: line: %d 40000\n",
+      "processing: line: %d 50000\n",
+      "processing: line: %d 60000\n",
+      "processing: line: %d 70000\n",
+      "processing: line: %d 80000\n",
+      "processing: line: %d 90000\n",
+      "processing: line: %d 100000\n",
+      "processing: line: %d 110000\n",
+      "processing: line: %d 120000\n",
+      "processing: line: %d 130000\n",
+      "processing: line: %d 140000\n",
+      "processing: line: %d 150000\n",
+      "processing: line: %d 160000\n",
+      "processing: line: %d 170000\n",
+      "processing: line: %d 180000\n",
+      "processing: line: %d 190000\n",
+      "processing: line: %d 200000\n",
+      "processing: line: %d 210000\n",
+      "processing: line: %d 220000\n",
+      "processing: line: %d 230000\n",
+      "processing: line: %d 240000\n",
+      "processing: line: %d 250000\n",
+      "processing: line: %d 260000\n",
+      "processing: line: %d 270000\n",
+      "processing: line: %d 280000\n",
+      "processing: line: %d 290000\n",
+      "processing: line: %d 300000\n",
+      "processing: line: %d 310000\n",
+      "processing: line: %d 320000\n",
+      "processing: line: %d 330000\n",
+      "processing: line: %d 340000\n",
+      "processing: line: %d 350000\n",
+      "processing: line: %d 360000\n",
+      "processing: line: %d 370000\n",
+      "processing: line: %d 380000\n",
+      "processing: line: %d 390000\n",
+      "processing: line: %d 400000\n",
+      "processing: line: %d 410000\n",
+      "processing: line: %d 420000\n",
+      "processing: line: %d 430000\n",
+      "processing: line: %d 440000\n",
+      "processing: line: %d 450000\n",
+      "processing: line: %d 460000\n",
+      "processing: line: %d 470000\n",
+      "processing: line: %d 480000\n",
+      "processing: line: %d 490000\n",
+      "processing: line: %d 500000\n",
+      "processing: line: %d 510000\n",
+      "processing: line: %d 520000\n",
+      "processing: line: %d 530000\n",
+      "processing: line: %d 540000\n",
+      "processing: line: %d 550000\n",
+      "processing: line: %d 560000\n",
+      "processing: line: %d 570000\n",
+      "processing: line: %d 580000\n",
+      "processing: line: %d 590000\n",
+      "processing: line: %d 600000\n",
+      "processing: line: %d 610000\n",
+      "processing: line: %d 620000\n",
+      "processing: line: %d 630000\n",
+      "processing: line: %d 640000\n",
+      "processing: line: %d 650000\n",
+      "processing: line: %d 660000\n",
+      "processing: line: %d 670000\n",
+      "processing: line: %d 680000\n",
+      "processing: line: %d 690000\n",
+      "processing: line: %d 700000\n",
+      "processing: line: %d 710000\n",
+      "processing: line: %d 720000\n",
+      "processing: line: %d 730000\n",
+      "processing: line: %d 740000\n",
+      "processing: line: %d 750000\n",
+      "processing: line: %d 760000\n",
+      "processing: line: %d 770000\n",
+      "processing: line: %d 780000\n",
+      "processing: line: %d 790000\n",
+      "processing: line: %d 800000\n",
+      "processing: line: %d 810000\n",
+      "processing: line: %d 820000\n",
+      "processing: line: %d 830000\n",
+      "processing: line: %d 840000\n",
+      "processing: line: %d 850000\n",
+      "processing: line: %d 860000\n",
+      "processing: line: %d 870000\n",
+      "processing: line: %d 880000\n",
+      "processing: line: %d 890000\n",
+      "processing: line: %d 900000\n",
+      "processing: line: %d 910000\n",
+      "processing: line: %d 920000\n",
+      "processing: line: %d 930000\n",
+      "processing: line: %d 940000\n",
+      "processing: line: %d 950000\n",
+      "processing: line: %d 960000\n",
+      "processing: line: %d 970000\n",
+      "processing: line: %d 980000\n",
+      "processing: line: %d 990000\n"
+     ]
+    }
+   ],
+   "source": [
+    "for i in range(0,len(title)):\n",
+    "    if i % 10000 == 0:\n",
+    "        print('processing: line: %d',i)\n",
+    "        \n",
+    "    word_input = title[i].split()\n",
+    "    word = []\n",
+    "    for j in range(0,len(word_input)):\n",
+    "        word.append(str_stem(word_input[j]))\n",
+    "    str = ''\n",
+    "    for j in range(0,len(word)):\n",
+    "        str = str + word[j]\n",
+    "        str = str +' '\n",
+    "    str = str.replace('  ',' ')\n",
+    "    processed_title.append(str)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "1000000"
+      ]
+     },
+     "execution_count": 39,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(processed_title)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Create Csv File"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import csv\n",
+    "\n",
+    "with open('_news_data.csv', 'w') as datacsv:\n",
+    "    writer = csv.writer(datacsv,dialect=(\"excel\"))\n",
+    "    writer.writerow(['news_id','news_content','news_summary'])\n",
+    "    for i in range(0,len(processed_document)):\n",
+    "        writer.writerow([i,processed_document[i],processed_title[i]])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 41,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 42,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "news_data = pd.read_csv('_news_data.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>news_id</th>\n",
+       "      <th>news_content</th>\n",
+       "      <th>news_summary</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0</td>\n",
+       "      <td>the club is design to allow veteran a place to...</td>\n",
+       "      <td>worcest breakfast club for veteran give hunger...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>1</td>\n",
+       "      <td>new product give market access to real keyword...</td>\n",
+       "      <td>jumpshot give market renew visibl into paid an...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>2</td>\n",
+       "      <td>home » style » the return of the nike air max ...</td>\n",
+       "      <td>the return of the nike air max sensat has 80 b...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>3</td>\n",
+       "      <td>this new date app will ruin your internet game...</td>\n",
+       "      <td>this new date app will ruin your internet game</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>4</td>\n",
+       "      <td>kuala lumpur sept 15 mysinchew  the kuala lump...</td>\n",
+       "      <td>pay up or face legal action: dbkl</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   news_id                                       news_content  \\\n",
+       "0        0  the club is design to allow veteran a place to...   \n",
+       "1        1  new product give market access to real keyword...   \n",
+       "2        2  home » style » the return of the nike air max ...   \n",
+       "3        3  this new date app will ruin your internet game...   \n",
+       "4        4  kuala lumpur sept 15 mysinchew  the kuala lump...   \n",
+       "\n",
+       "                                        news_summary  \n",
+       "0  worcest breakfast club for veteran give hunger...  \n",
+       "1  jumpshot give market renew visibl into paid an...  \n",
+       "2  the return of the nike air max sensat has 80 b...  \n",
+       "3    this new date app will ruin your internet game   \n",
+       "4                 pay up or face legal action: dbkl   "
+      ]
+     },
+     "execution_count": 43,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "news_data[0:5]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'kuala lumpur sept 15 mysinchew  the kuala lumpur citi hall today issu an ultimatum to bersih 2.0 to pay the clean up bill by this month or face legal action he said dbkl would bring this matter to the court if bersih 2.0 fail to pay up he said dbkl would bring this matter to the court if bersih 2.0 fail to pay up he said dbkl would bring this matter to the court if bersih 2.0 fail to pay up he said dbkl would bring this matter to the court if bersih 2.0 fail to pay up he said dbkl would bring this matter to the court if bersih 2.0 fail to pay up he said dbkl would bring '"
+      ]
+     },
+     "execution_count": 44,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "news_data['news_content'].values[4]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## create vocabulary\n",
+    "#### use start token, end token and unk "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import random\n",
+    "from collections import defaultdict\n",
+    "import pandas as pd\n",
+    "import json\n",
+    "from collections import Counter\n",
+    "import itertools\n",
+    "import re"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 46,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "vocab_word = processed_document + processed_title"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "sentence_word = []\n",
+    "for s in vocab_word:\n",
+    "    s_w = s.split(' ')\n",
+    "    sentence_word.append(s_w)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 50,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2000000"
+      ]
+     },
+     "execution_count": 50,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(sentence_word)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 51,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "#Builds a vocabulary mapping from word to index based on the sentences.\n",
+    "word_counts = Counter(itertools.chain(*sentence_word))\n",
+    "# Mapping from index to word\n",
+    "vocabulary_inv = [x[0] for x in word_counts.most_common()]\n",
+    "# Mapping from word to index\n",
+    "vocabulary = {x: i+4 for i, x in enumerate(vocabulary_inv)}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 52,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "vocabulary[\"_PAD\"] = 0\n",
+    "vocabulary[\"_GO\"] = 1\n",
+    "vocabulary[\"_EOS\"] = 2\n",
+    "vocabulary[\"_UNK\"] = 3"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 53,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "970598"
+      ]
+     },
+     "execution_count": 53,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(vocabulary)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 59,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "512"
+      ]
+     },
+     "execution_count": 59,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "vocabulary['club']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 56,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "3"
+      ]
+     },
+     "execution_count": 56,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "vocabulary['_UNK']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "# 截取前250K common word 为vocabulary"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 60,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "vocabulary_common = {key:value for key,value in vocabulary.items() if value < 250000}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "250000"
+      ]
+     },
+     "execution_count": 61,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(vocabulary_common)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 62,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "#vocabulary_common"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 63,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "jsObj = json.dumps(vocabulary_common)  \n",
+    "  \n",
+    "fileObject = open('newdataset_vocabulary.json', 'w')  \n",
+    "fileObject.write(jsObj)  \n",
+    "fileObject.close()  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import json"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 65,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "vocabulary = json.load(open('newdataset_vocabulary.json','r'))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 66,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "#vocabulary"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 67,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "Exception ignored in: 'zmq.backend.cython.message.Frame.__dealloc__'\n",
+      "Traceback (most recent call last):\n",
+      "  File \"zmq/backend/cython/checkrc.pxd\", line 12, in zmq.backend.cython.checkrc._check_rc (zmq/backend/cython/message.c:4018)\n",
+      "KeyboardInterrupt\n"
+     ]
+    }
+   ],
+   "source": [
+    "jsObj = json.dumps(vocabulary)  \n",
+    "  \n",
+    "fileObject = open('/Users/zhangyiman/Desktop/newdataset_vocabulary.json', 'w')  \n",
+    "fileObject.write(jsObj)  \n",
+    "fileObject.close()  "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "anaconda-cloud": {},
+  "kernelspec": {
+   "display_name": "Python [conda root]",
+   "language": "python",
+   "name": "conda-root-py"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.5.2"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
